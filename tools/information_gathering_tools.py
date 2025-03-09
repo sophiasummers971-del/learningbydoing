@@ -19,8 +19,11 @@ class NMAP(HackingTool):
     PROJECT_URL = "https://github.com/nmap/nmap"
 
     def __init__(self):
-        super(NMAP, 
-              self).__init__(runnable = False)
+        super(NMAP, self).__init__(runnable=True)
+
+    def run(self):
+        target = input("Enter the target IP or domain: ")
+        subprocess.run(["sudo", "nmap", "-A", target])
 
 
 class Dracnmap(HackingTool):
@@ -34,8 +37,8 @@ class Dracnmap(HackingTool):
     RUN_COMMANDS = ["cd Dracnmap;sudo ./dracnmap-v2.2.sh"]
     PROJECT_URL = "https://github.com/Screetsec/Dracnmap"
 
-#    def __init__(self):
-#        super(Dracnmap, self).__init__(runnable = False)
+    def __init__(self):
+        super(Dracnmap, self).__init__(runnable = False)
 
 
 class PortScan(HackingTool):
@@ -97,8 +100,13 @@ class ReconSpider(HackingTool):
     RUN_COMMANDS = ["cd reconspider;python3 reconspider.py"]
     PROJECT_URL = "https://github.com/bhavsec/reconspider"
 
-#    def __init__(self):
-#        super(ReconSpider, self).__init__(runnable = False)
+    def __init__(self):
+        super(ReconSpider, self).__init__(runnable=True)
+
+    def run(self):
+        target = input("Enter the target IP, domain, or email: ")
+        os.chdir("reconspider")
+        subprocess.run(["python3", "reconspider.py", "-d", target])
 
 
 class IsItDown(HackingTool):
@@ -184,6 +192,9 @@ class PortScannerRanger(HackingTool):
         "git clone https://github.com/floriankunushevci/rang3r.git;"
         "sudo pip install termcolor"]
     PROJECT_URL = "https://github.com/floriankunushevci/rang3r"
+
+    def __init__(self):
+        super(PortScannerRanger, self).__init__(runnable=True)
 
     def run(self):
         ip = input("Enter Ip >> ")
