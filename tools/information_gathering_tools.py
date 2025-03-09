@@ -19,7 +19,8 @@ class NMAP(HackingTool):
     PROJECT_URL = "https://github.com/nmap/nmap"
 
     def __init__(self):
-        super(NMAP, self).__init__(runnable = False)
+        super(NMAP, 
+              self).__init__(runnable = False)
 
 
 class Dracnmap(HackingTool):
