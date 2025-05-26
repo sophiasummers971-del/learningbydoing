@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hacking Tool Explorer{% endblock %}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; color: #333; }
+        .container { width: 80%; margin: auto; overflow: hidden; padding: 20px; background-color: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        header { background-color: #333; color: #fff; padding: 1rem 0; text-align: center; }
+        header h1 { margin: 0; }
+        nav ul { padding: 0; list-style: none; text-align: center; }
+        nav ul li { display: inline; margin-right: 20px; }
+        nav a { color: #fff; text-decoration: none; }
+        .content { padding: 20px; }
+        a { color: #337ab7; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .tool-list li, .category-list li { margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .tool-details div, .tool-details pre { margin-bottom: 10px; }
+        pre { background-color: #eee; padding: 10px; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; }
+        footer { text-align: center; padding: 20px; margin-top: 20px; background-color: #333; color: #fff;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1><a href="{{ url_for('index') }}" style="color: #fff; text-decoration: none;">Hacking Tool Explorer</a></h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                {# Add other global navigation links here if needed in the future #}
+            </ul>
+        </nav>
+    </header>
+    <div class="container">
+        <div class="breadcrumb-nav">
+            {% block breadcrumbs %}{% endblock %}
+        </div>
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+    <footer>
+        <p>&copy; Hacking Tool Explorer</p>
+    </footer>
+</body>
+</html>

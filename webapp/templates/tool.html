@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tool.title }} - Hacking Tool Explorer{% endblock %}
+
+{% block breadcrumbs %}
+    <a href="{{ url_for('index') }}">Home</a> &raquo; 
+    <a href="{{ url_for('category_view', category_slug=category.slug) }}">{{ category.title }}</a> &raquo; 
+    {{ tool.title }}
+{% endblock %}
+
+{% block content %}
+    <h2>{{ tool.title }}</h2>
+
+    <div id="executingMessage" class="executing-message" style="display: none;">
+        Executing tool, please wait... This might take a moment.
+    </div>
+    
+    <div class="tool-details">
+        {% if tool.description %}
+            <div>
+                <strong>Description:</strong>
+                <p>{{ tool.description | nl2br }}</p>
+            </div>
+        {% endif %}
+
+        {% if tool.project_url %}
+            <div>
+                <strong>Project URL:</strong>
+                <p><a href="{{ tool.project_url }}" target="_blank">{{ tool.project_url }}</a></p>
+            </div>
+        {% endif %}
+
+        <div>
+            <strong>Execution Type:</strong>
+            <p>{{ tool.execution_type }}</p>
+        </div>
+
+        {% if tool.install_commands %}
+            <div>
+                <strong>Install Commands:</strong>
+                <pre><code>{% for command in tool.install_commands %}{{ command }}\n{% endfor %}</code></pre>
+            </div>
+        {% else %}
+             <div>
+                <strong>Install Commands:</strong>
+                <p>No specific installation commands provided.</p>
+            </div>
+        {% endif %}
+
+        {% if tool.run_commands %}
+            <div>
+                <strong>Run Commands:</strong>
+                <pre><code>{% for command in tool.run_commands %}{{ command }}\n{% endfor %}</code></pre>
+            </div>
+            {% if tool.execution_type == "run_commands" and tool.run_commands %}
+            <div style="margin-top: 15px;">
+                <a href="{{ url_for('run_tool_view', category_slug=category.slug, tool_slug=tool.slug) }}" class="button run-tool-button" style="display: inline-block; padding: 10px 15px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">▶ Run Tool</a>
+            </div>
+            {% endif %}
+        {% elif tool.execution_type == "custom_run" and tool.custom_input_fields %}
+            <div style="margin-top: 15px;">
+                <h4>Run this tool with custom input:</h4>
+                <form id="customToolForm" method="POST" action="{{ url_for('run_custom_tool_view', category_slug=category.slug, tool_slug=tool.slug) }}">
+                    {% for field in tool.custom_input_fields %}
+                        <div style="margin-bottom: 10px;">
+                            <label for="{{ field.name }}">{{ field.label }}</label><br>
+                            <input type="text" id="{{ field.name }}" name="{{ field.name }}" required style="width: 50%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                    {% endfor %}
+                    <button type="submit" class="button run-custom-tool-button" style="padding: 10px 15px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; border: none; cursor: pointer; font-weight: bold;">▶ Run Custom Tool</button>
+                </form>
+            </div>
+        {% elif tool.execution_type == "custom_run" %}
+             <div>
+                <strong>Run Tool:</strong>
+                <p>This tool requires custom input not yet supported via the web UI.</p>
+            </div>
+        {% else %}
+            <div>
+                <strong>Run Commands:</strong>
+                <p>No specific run commands provided. Execution type is '{{ tool.execution_type }}'.</p>
+            </div>
+        {% endif %}
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const executingMessage = document.getElementById('executingMessage');
+        
+        const runToolButtons = document.querySelectorAll('.run-tool-button');
+        runToolButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                if(executingMessage) {
+                    executingMessage.style.display = 'block';
+                }
+            });
+        });
+
+        const customToolForm = document.getElementById('customToolForm');
+        if (customToolForm) {
+            customToolForm.addEventListener('submit', function() {
+                if(executingMessage) {
+                    executingMessage.style.display = 'block';
+                }
+                // Optionally, could disable the button here too to prevent multiple submissions
+                // const submitButton = customToolForm.querySelector('.run-custom-tool-button');
+                // if (submitButton) {
+                //    submitButton.disabled = true;
+                //    submitButton.textContent = 'Executing...';
+                // }
+            });
+        }
+    });
+</script>
+{% endblock %}

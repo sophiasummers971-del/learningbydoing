@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Output for {{ tool.title }} - Hacking Tool Explorer{% endblock %}
+
+{% block breadcrumbs %}
+    <a href="{{ url_for('index') }}">Home</a> &raquo; 
+    <a href="{{ url_for('category_view', category_slug=category.slug) }}">{{ category.title }}</a> &raquo; 
+    <a href="{{ url_for('tool_view', category_slug=category.slug, tool_slug=tool.slug) }}">{{ tool.title }}</a> &raquo;
+    Execution Output
+{% endblock %}
+
+{% block content %}
+    <h2>Output for: {{ tool.title }}</h2>
+
+    {% if execution_succeeded is defined %}
+        {% if execution_succeeded %}
+            <div class="status-message status-success">
+                Tool executed successfully.
+            </div>
+        {% else %}
+            <div class="status-message status-error">
+                Tool execution completed with errors or failed. Please see details below.
+            </div>
+        {% endif %}
+    {% endif %}
+    
+    <div class="tool-output">
+        <h3>Command Execution Output:</h3>
+        {% if output %}
+            <pre><code>{{ output }}</code></pre>
+        {% else %}
+            <p>No output was captured, or the tool did not produce any output.</p>
+        {% endif %}
+    </div>
+{% endblock %}

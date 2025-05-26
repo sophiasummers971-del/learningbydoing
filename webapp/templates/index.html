@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Tool Categories - Hacking Tool Explorer{% endblock %}
+
+{% block content %}
+    <h2>Tool Categories</h2>
+    {% if categories %}
+        <ul class="category-list">
+            {% for category in categories %}
+                <li>
+                    <h3><a href="{{ url_for('category_view', category_slug=category.slug) }}">{{ category.title }}</a></h3>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No tool categories available. The application might be misconfigured or discover_tools.py produced no output.</p>
+    {% endif %}
+{% endblock %}

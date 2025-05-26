@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  hackingtool-web:
+    build:
+      context: .
+      dockerfile: webapp.Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      # Mounts the webapp directory for live code changes during development.
+      # The rest of the application and tools are part of the image.
+      - ./webapp:/opt/hackingtool_web_app/webapp
+      # Persist downloaded tools across container restarts/rebuilds (if HACKINGTOOL_INSTALL_PATH is used by tools for downloads)
+      # This path should match HACKINGTOOL_INSTALL_PATH in the Dockerfile.
+      - hackingtools_data:/opt/hackingtools_downloads
+    tty: true
+    stdin_open: true
+    # To run as the appuser defined in Dockerfile, if needed, though CMD in Dockerfile handles this.
+    # user: appuser 
+    environment:
+      # Pass the same environment variables as in Dockerfile if they need to be overrideable or are dynamic
+      - FLASK_APP=${FLASK_APP:-webapp/app.py}
+      - FLASK_RUN_HOST=${FLASK_RUN_HOST:-0.0.0.0}
+      - FLASK_RUN_PORT=${FLASK_RUN_PORT:-5000}
+      - HACKINGTOOL_INSTALL_PATH=${HACKINGTOOL_INSTALL_PATH:-/opt/hackingtools_downloads}
+      # For development, Flask debug mode can be useful.
+      # Note: FLASK_DEBUG=1 might cause issues with some subprocesses or if the reloader is too aggressive.
+      # - FLASK_DEBUG=${FLASK_DEBUG:-1} 
+
+volumes:
+  hackingtools_data: # Defines a named volume to persist tool data (e.g. cloned repos)
+    driver: local
