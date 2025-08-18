@@ -72,10 +72,22 @@ if [[ $choice =~ ^[1-2]+$ ]]; then
             sudo apt update -y && sudo apt upgrade -y
             sudo apt-get install -y git python3-pip figlet boxes php curl xdotool wget -y ;
         elif [[ $choice == 2 ]]; then
-            sudo pacman -Suy -y
-            sudo pacman -S python-pip -y  
-        else
-            exit
+            sudo pacman -Syu --noconfirm
+            sudo pacman -S --noconfirm git python-pip figlet curl wget php xdotool
+            echo "Python 3.3+ comes with a module called venv."   # v0 feature preserved
+            # Build boxes from AUR
+            if [ -z "$SUDO_USER" ]; then
+                echo -e "${RED}[!] For Arch Linux installation, this script must be run with sudo.${NC}"
+                exit 1
+            fi
+            build_dir=$(mktemp -d)
+            chown "$SUDO_USER:$SUDO_USER" "$build_dir"
+            trap 'rm -rf "$build_dir"' EXIT
+            sudo -u "$SUDO_USER" git clone https://aur.archlinux.org/boxes.git "$build_dir/boxes"
+            pushd "$build_dir/boxes" > /dev/null
+            sudo -u "$SUDO_USER" makepkg -s --noconfirm
+            sudo pacman -U --noconfirm *.pkg.tar.*
+            popd > /dev/null
         fi
         echo "";
         echo -e "${YELLOW}[*] Checking directories...${NC}"
@@ -87,7 +99,7 @@ if [[ $choice =~ ^[1-2]+$ ]]; then
                 sudo rm -rf "$install_dir"
             else
                 echo -e "${RED}[✘]Installation Not Required[✘] ${NC}"
-                exit
+                exit 0
             fi
         fi
         echo "";
@@ -97,8 +109,6 @@ if [[ $choice =~ ^[1-2]+$ ]]; then
             echo -e "${YELLOW}[*] Installing Virtual Environment...${NC}"
             if [[ $choice == 1 ]]; then
               sudo apt install python3-venv -y
-            elif [[ $choice == 2 ]]; then
-              echo "Python 3.3+ comes with a module called venv.";
             fi
             echo "";
             # Create a virtual environment for the tool
@@ -109,18 +119,25 @@ if [[ $choice =~ ^[1-2]+$ ]]; then
             echo -e "${GREEN}[✔] Virtual Environment successfully [✔]${NC}";
             echo "";
             echo -e "${YELLOW}[*] Installing requirements...${NC}"
+            pip3 install -r $install_dir/requirements.txt
             if [[ $choice == 1 ]]; then
+                # Debian/Ubuntu installation
                 pip3 install -r $install_dir/requirements.txt
                 sudo apt install figlet -y
+                sudo apt install boxes -y
+            
             elif [[ $choice == 2 ]]; then
+                # Arch Linux installation
                 pip3 install -r $install_dir/requirements.txt
+                sudo pacman -S figlet --noconfirm
+            
+                # Install boxes from AUR
                 sudo -u $SUDO_USER git clone https://aur.archlinux.org/boxes.git && cd boxes
                 sudo -u $SUDO_USER makepkg -si
-                sudo pacman -S figlet -y
             fi
+
             # Create a shell script to launch the tool
             echo -e "${YELLOW}[*] Creating a shell script to launch the tool..."
-#            echo '#!/bin/bash' > hackingtool.sh
             echo '#!/bin/bash' > $install_dir/hackingtool.sh
             echo "source $install_dir/venv/bin/activate" >> $install_dir/hackingtool.sh
             echo "python3 $install_dir/hackingtool.py \$@" >> $install_dir/hackingtool.sh
