@@ -2,8 +2,16 @@
 import os
 import subprocess
 
+from rich.console import Console
+from rich.prompt import Prompt
+from rich.panel import Panel
+from rich.text import Text
+
 from core import HackingTool
 from core import HackingToolsCollection
+
+console = Console()
+P_COLOR = "magenta"  # primary purple/magenta theme for styling
 
 
 class ddos(HackingTool):
@@ -21,12 +29,13 @@ class ddos(HackingTool):
     PROJECT_URL = "https://github.com/the-deepnet/ddos.git"
 
     def run(self):
-        method = input("Enter Method >> ")
-        url = input("Enter URL >> ")
-        threads = input("Enter Threads >> ")
-        proxylist = input(" Enter ProxyList >> ")
-        multiple = input(" Enter Multiple >> ")
-        timer = input(" Enter Timer >> ")
+        console.print(Panel(Text(self.TITLE, justify="center"), style=f"bold {P_COLOR}"))
+        method = Prompt.ask("Enter Method >>")
+        url = Prompt.ask("Enter URL >>")
+        threads = Prompt.ask("Enter Threads >>")
+        proxylist = Prompt.ask("Enter ProxyList >>")
+        multiple = Prompt.ask("Enter Multiple >>")
+        timer = Prompt.ask("Enter Timer >>")
         os.system("cd ddos;")
         subprocess.run(
             [
@@ -52,7 +61,8 @@ class SlowLoris(HackingTool):
     INSTALL_COMMANDS = ["sudo pip3 install slowloris"]
 
     def run(self):
-        target_site = input("Enter Target Site:- ")
+        console.print(Panel(Text(self.TITLE, justify="center"), style=f"bold {P_COLOR}"))
+        target_site = Prompt.ask("Enter Target Site:-")
         subprocess.run(["slowloris", target_site])
 
 
@@ -70,9 +80,10 @@ class Asyncrone(HackingTool):
     PROJECT_URL = "https://github.com/fatihsnsy/aSYNcrone"
 
     def run(self):
-        source_port = input("Enter Source Port >> ")
-        target_ip = input("Enter Target IP >> ")
-        target_port = input("Enter Target port >> ")
+        console.print(Panel(Text(self.TITLE, justify="center"), style=f"bold {P_COLOR}"))
+        source_port = Prompt.ask("Enter Source Port >>")
+        target_ip = Prompt.ask("Enter Target IP >>")
+        target_port = Prompt.ask("Enter Target port >>")
         os.system("cd aSYNcrone;")
         subprocess.run(
             ["sudo", "./aSYNcrone", source_port, target_ip, target_port, 1000]
@@ -108,8 +119,9 @@ class GoldenEye(HackingTool):
     PROJECT_URL = "https://github.com/jseidl/GoldenEye"
 
     def run(self):
+        console.print(Panel(Text(self.TITLE, justify="center"), style=f"bold {P_COLOR}"))
         os.system("cd GoldenEye ;sudo ./goldeneye.py")
-        print("\033[96m Go to Directory \n [*] USAGE: ./goldeneye.py <url> [OPTIONS]")
+        console.print("Go to Directory\n[*] USAGE: ./goldeneye.py <url> [OPTIONS]")
 
 
 class Saphyra(HackingTool):
@@ -125,11 +137,12 @@ class Saphyra(HackingTool):
     PROJECT_URL = "https://github.com/anonymous24x7/Saphyra-DDoS"
 
     def run(self):
-        url = input("Enter url>>> ")
+        console.print(Panel(Text(self.TITLE, justify="center"), style=f"bold {P_COLOR}"))
+        url = Prompt.ask("Enter url>>>")
         try:
             os.system("python saphyra.py " + url)
         except Exception:
-            print("Enter a valid url.")
+            console.print("Enter a valid url.", style="bold red")
 
 
 class DDOSTools(HackingToolsCollection):
