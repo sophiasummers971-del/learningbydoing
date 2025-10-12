@@ -2,6 +2,14 @@
 from core import HackingTool
 from core import HackingToolsCollection
 
+from rich.console import Console
+from rich.theme import Theme
+from rich.table import Table
+from rich.panel import Panel
+
+_theme = Theme({"purple": "#7B61FF"})
+console = Console(theme=_theme)
+
 
 class Sqlmap(HackingTool):
     TITLE = "Sqlmap tool"
@@ -15,6 +23,7 @@ class Sqlmap(HackingTool):
         "sudo git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git sqlmap-dev"]
     RUN_COMMANDS = ["cd sqlmap-dev;python3 sqlmap.py --wizard"]
     PROJECT_URL = "https://github.com/sqlmapproject/sqlmap"
+
 
 class NoSqlMap(HackingTool):
     TITLE = "NoSqlMap"
@@ -40,7 +49,7 @@ class SQLiScanner(HackingTool):
     PROJECT_URL = "https://github.com/stamparm/DSSS"
 
     def __init__(self):
-        super(SQLiScanner, self).__init__(runnable = False)
+        super(SQLiScanner, self).__init__(runnable=False)
 
 
 class Explo(HackingTool):
@@ -57,7 +66,7 @@ class Explo(HackingTool):
     PROJECT_URL = "https://github.com/dtag-dev-sec/explo"
 
     def __init__(self):
-        super(Explo, self).__init__(runnable = False)
+        super(Explo, self).__init__(runnable=False)
 
 
 class Blisqy(HackingTool):
@@ -70,7 +79,7 @@ class Blisqy(HackingTool):
     PROJECT_URL = "https://github.com/JohnTroony/Blisqy"
 
     def __init__(self):
-        super(Blisqy, self).__init__(runnable = False)
+        super(Blisqy, self).__init__(runnable=False)
 
 
 class Leviathan(HackingTool):
@@ -112,3 +121,22 @@ class SqlInjectionTools(HackingToolsCollection):
         Leviathan(),
         SQLScan()
     ]
+
+    def pretty_print(self):
+        table = Table(title="SQL Injection Tools", show_lines=True, expand=True)
+        table.add_column("Title", style="purple", no_wrap=True)
+        table.add_column("Description", style="purple")
+        table.add_column("Project URL", style="purple", no_wrap=True)
+
+        for t in self.TOOLS:
+            desc = getattr(t, "DESCRIPTION", "") or ""
+            url = getattr(t, "PROJECT_URL", "") or ""
+            table.add_row(t.TITLE, desc.strip().replace("\n", " "), url)
+
+        panel = Panel(table, title="[purple]Available Tools[/purple]", border_style="purple")
+        console.print(panel)
+
+
+if __name__ == "__main__":
+    tools = SqlInjectionTools()
+    tools.pretty_print()
