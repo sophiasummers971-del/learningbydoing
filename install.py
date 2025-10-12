@@ -77,17 +77,29 @@ def check_internet():
 
 
 def system_update_and_install(choice):
-    if choice == 1:
-        console.print("[yellow]* Running apt update/upgrade...[/yellow]")
-        run_cmd("apt update -y && apt upgrade -y")
-        console.print("[yellow]* Installing required packages (apt)...[/yellow]")
-        run_cmd("apt-get install -y git python3-pip python3-venv figlet boxes php curl xdotool wget")
-    elif choice == 2:
-        console.print("[yellow]* Running pacman update...[/yellow]")
-        run_cmd("pacman -Syu --noconfirm")
-        console.print("[yellow]* Installing required packages (pacman)...[/yellow]")
-        run_cmd("pacman -S --noconfirm git python-pip")
-        # figlet via pacman or AUR handled later if desired
+    try:
+        if choice == 1:
+            console.print("[yellow]* Running apt update/upgrade...[/yellow]")
+            try:
+                run_cmd("apt update -y && apt upgrade -y")
+            except subprocess.CalledProcessError as e:
+                console.print(f"[red][!][/red] apt update/upgrade failed (non-fatal). Continuing installation. Error: {e}")
+            console.print("[yellow]* Installing required packages (apt)...[/yellow]")
+            try:
+                run_cmd("apt-get install -y git python3-pip python3-venv figlet boxes php curl xdotool wget")
+            except subprocess.CalledProcessError as e:
+                console.print(f"[red][!][/red] apt-get install failed (non-fatal). You may need to install some packages manually. Error: {e}")
+        elif choice == 2:
+            console.print("[yellow]* Running pacman update...[/yellow]")
+            try:
+                run_cmd("pacman -Syu --noconfirm")
+            except subprocess.CalledProcessError as e:
+                console.print(f"[red][!][/red] pacman update failed (non-fatal). Continuing installation. Error: {e}")
+            console.print("[yellow]* Installing required packages (pacman)...[/yellow]")
+            try:
+                run_cmd("pacman -S --noconfirm git python-pip")
+            except subprocess.CalledProcessError as e:
+                console.print(f"[red][!][/red] pacman install failed (non-fatal). You may need to install some packages manually. Error: {e}")
 
 
 def prepare_install_dir():
