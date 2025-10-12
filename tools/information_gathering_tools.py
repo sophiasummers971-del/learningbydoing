@@ -8,6 +8,14 @@ from core import HackingTool
 from core import HackingToolsCollection
 from core import clear_screen
 
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
+from rich.prompt import Prompt
+
+console = Console()
+PURPLE_STYLE = "bold magenta"
+
 
 class NMAP(HackingTool):
     TITLE = "Network Map (nmap)"
@@ -19,7 +27,7 @@ class NMAP(HackingTool):
     PROJECT_URL = "https://github.com/nmap/nmap"
 
     def __init__(self):
-        super(NMAP, self).__init__(runnable = False)
+        super(NMAP, self).__init__(runnable=False)
 
 
 class Dracnmap(HackingTool):
@@ -33,19 +41,20 @@ class Dracnmap(HackingTool):
     RUN_COMMANDS = ["cd Dracnmap;sudo ./dracnmap-v2.2.sh"]
     PROJECT_URL = "https://github.com/Screetsec/Dracnmap"
 
-#    def __init__(self):
-#        super(Dracnmap, self).__init__(runnable = False)
+    # def __init__(self):
+    #     super(Dracnmap, self).__init__(runnable = False)
 
 
 class PortScan(HackingTool):
     TITLE = "Port scanning"
 
     def __init__(self):
-        super(PortScan, self).__init__(installable = False)
+        super(PortScan, self).__init__(installable=False)
 
     def run(self):
         clear_screen()
-        target = input('Select a Target IP: ')
+        console.print(Panel(Text(self.TITLE, justify="center"), style=PURPLE_STYLE))
+        target = Prompt.ask("[bold]Select a Target IP[/]", default="", show_default=False)
         subprocess.run(["sudo", "nmap", "-O", "-Pn", target])
 
 
@@ -53,13 +62,14 @@ class Host2IP(HackingTool):
     TITLE = "Host to IP "
 
     def __init__(self):
-        super(Host2IP, self).__init__(installable = False)
+        super(Host2IP, self).__init__(installable=False)
 
     def run(self):
         clear_screen()
-        host = input("Enter host name (e.g. www.google.com):-  ")
+        console.print(Panel(Text(self.TITLE, justify="center"), style=PURPLE_STYLE))
+        host = Prompt.ask("Enter host name (e.g. www.google.com):-  ")
         ips = socket.gethostbyname(host)
-        print(ips)
+        console.print(f"[{PURPLE_STYLE}]{host} -> {ips}[/]")
 
 
 class XeroSploit(HackingTool):
@@ -96,8 +106,8 @@ class ReconSpider(HackingTool):
     RUN_COMMANDS = ["cd reconspider;python3 reconspider.py"]
     PROJECT_URL = "https://github.com/bhavsec/reconspider"
 
-#    def __init__(self):
-#        super(ReconSpider, self).__init__(runnable = False)
+    # def __init__(self):
+    #     super(ReconSpider, self).__init__(runnable = False)
 
 
 class IsItDown(HackingTool):
@@ -106,9 +116,10 @@ class IsItDown(HackingTool):
 
     def __init__(self):
         super(IsItDown, self).__init__(
-            [('Open', self.open)], installable = False, runnable = False)
+            [('Open', self.open)], installable=False, runnable=False)
 
     def open(self):
+        console.print(Panel("Opening isitdownrightnow.com", style=PURPLE_STYLE))
         webbrowser.open_new_tab("https://www.isitdownrightnow.com/")
 
 
@@ -142,7 +153,8 @@ class Striker(HackingTool):
     PROJECT_URL = "https://github.com/s0md3v/Striker"
 
     def run(self):
-        site = input("Enter Site Name (example.com) >> ")
+        console.print(Panel(Text(self.TITLE, justify="center"), style=PURPLE_STYLE))
+        site = Prompt.ask("Enter Site Name (example.com) >> ")
         os.chdir("Striker")
         subprocess.run(["sudo", "python3", "striker.py", site])
 
@@ -160,7 +172,7 @@ class SecretFinder(HackingTool):
     PROJECT_URL = "https://github.com/m4ll0k/SecretFinder"
 
     def __init__(self):
-        super(SecretFinder, self).__init__(runnable = False)
+        super(SecretFinder, self).__init__(runnable=False)
 
 
 class Shodan(HackingTool):
@@ -172,7 +184,7 @@ class Shodan(HackingTool):
     PROJECT_URL = "https://github.com/m4ll0k/Shodanfy.py"
 
     def __init__(self):
-        super(Shodan, self).__init__(runnable = False)
+        super(Shodan, self).__init__(runnable=False)
 
 
 class PortScannerRanger(HackingTool):
@@ -185,7 +197,8 @@ class PortScannerRanger(HackingTool):
     PROJECT_URL = "https://github.com/floriankunushevci/rang3r"
 
     def run(self):
-        ip = input("Enter Ip >> ")
+        console.print(Panel(Text(self.TITLE, justify="center"), style=PURPLE_STYLE))
+        ip = Prompt.ask("Enter Ip >> ")
         os.chdir("rang3r")
         subprocess.run(["sudo", "python", "rang3r.py", "--ip", ip])
 
@@ -195,11 +208,13 @@ class Breacher(HackingTool):
     DESCRIPTION = "An advanced multithreaded admin panel finder written in python."
     INSTALL_COMMANDS = ["git clone https://github.com/s0md3v/Breacher.git"]
     PROJECT_URL = "https://github.com/s0md3v/Breacher"
-    
+
     def run(self):
-        domain = input("Enter domain (example.com) >> ")
+        console.print(Panel(Text(self.TITLE, justify="center"), style=PURPLE_STYLE))
+        domain = Prompt.ask("Enter domain (example.com) >> ")
         os.chdir("Breacher")
         subprocess.run(["python3", "breacher.py", "-u", domain])
+
 
 class InformationGatheringTools(HackingToolsCollection):
     TITLE = "Information gathering tools"
