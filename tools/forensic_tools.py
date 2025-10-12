@@ -1,6 +1,5 @@
 # coding=utf-8
 import os
-
 import sys
 
 # Fetching parent directory for importing core.py
@@ -10,6 +9,13 @@ sys.path.append(parent_dir)
 
 from core import HackingTool
 from core import HackingToolsCollection
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
+
+console = Console()
+PURPLE_STYLE = "bold magenta"
 
 
 class Autopsy(HackingTool):
@@ -21,7 +27,7 @@ class Autopsy(HackingTool):
     RUN_COMMANDS = ["sudo autopsy"]
 
     def __init__(self):
-        super(Autopsy, self).__init__(installable = False)
+        super(Autopsy, self).__init__(installable=False)
 
 
 class Wireshark(HackingTool):
@@ -32,7 +38,7 @@ class Wireshark(HackingTool):
     RUN_COMMANDS = ["sudo wireshark"]
 
     def __init__(self):
-        super(Wireshark, self).__init__(installable = False)
+        super(Wireshark, self).__init__(installable=False)
 
 
 class BulkExtractor(HackingTool):
@@ -44,23 +50,24 @@ class BulkExtractor(HackingTool):
         super(BulkExtractor, self).__init__([
             ('GUI Mode (Download required)', self.gui_mode),
             ('CLI Mode', self.cli_mode)
-        ], installable = False, runnable = False)
+        ], installable=False, runnable=False)
 
     def gui_mode(self):
-        os.system(
-            "sudo git clone https://github.com/simsong/bulk_extractor.git")
+        console.print(Panel(Text(self.TITLE, justify="center"), style=PURPLE_STYLE))
+        console.print("[bold magenta]Cloning repository and attempting to run GUI...[/]")
+        os.system("sudo git clone https://github.com/simsong/bulk_extractor.git")
         os.system("ls src/ && cd .. && cd java_gui && ./BEViewer")
-        print(
-            "If you getting error after clone go to /java_gui/src/ And Compile .Jar file && run ./BEViewer")
-        print(
-            "Please Visit For More Details About Installation >> https://github.com/simsong/bulk_extractor")
+        console.print(
+            "[magenta]If you get an error after clone go to /java_gui/src/ and compile the .jar file && run ./BEViewer[/]")
+        console.print(
+            "[magenta]Please visit for more details about installation: https://github.com/simsong/bulk_extractor[/]")
 
     def cli_mode(self):
+        console.print(Panel(Text(self.TITLE + " - CLI Mode", justify="center"), style=PURPLE_STYLE))
         os.system("sudo apt install bulk-extractor")
-        print("bulk_extractor and options")
+        console.print("[magenta]Showing bulk_extractor help and options:[/]")
         os.system("bulk_extractor -h")
-        os.system(
-            'echo "bulk_extractor [options] imagefile" | boxes -d headline | lolcat')
+        os.system('echo "bulk_extractor [options] imagefile" | boxes -d headline | lolcat')
 
 
 class Guymager(HackingTool):
@@ -69,6 +76,9 @@ class Guymager(HackingTool):
     INSTALL_COMMANDS = ["sudo apt install guymager"]
     RUN_COMMANDS = ["sudo guymager"]
     PROJECT_URL = "https://guymager.sourceforge.io/"
+
+    def __init__(self):
+        super(Guymager, self).__init__(installable=False)
 
 
 class Toolsley(HackingTool):
@@ -84,7 +94,7 @@ class Toolsley(HackingTool):
     PROJECT_URL = "https://www.toolsley.com/"
 
     def __init__(self):
-        super(Toolsley, self).__init__(installable = False, runnable = False)
+        super(Toolsley, self).__init__(installable=False, runnable=False)
 
 
 class ForensicTools(HackingToolsCollection):
