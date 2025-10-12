@@ -4,6 +4,14 @@ import subprocess
 from core import HackingTool
 from core import HackingToolsCollection
 
+from rich.console import Console
+from rich.theme import Theme
+from rich.table import Table
+from rich.panel import Panel
+
+_theme = Theme({"purple": "#7B61FF"})
+console = Console(theme=_theme)
+
 
 class AndroGuard(HackingTool):
     TITLE = "Androguard"
@@ -13,7 +21,7 @@ class AndroGuard(HackingTool):
     PROJECT_URL = "https://github.com/androguard/androguard "
 
     def __init__(self):
-        super(AndroGuard, self).__init__(runnable = False)
+        super(AndroGuard, self).__init__(runnable=False)
 
 
 class Apk2Gold(HackingTool):
@@ -44,7 +52,7 @@ class Jadx(HackingTool):
     PROJECT_URL = "https://github.com/skylot/jadx"
 
     def __init__(self):
-        super(Jadx, self).__init__(runnable = False)
+        super(Jadx, self).__init__(runnable=False)
 
 
 class ReverseEngineeringTools(HackingToolsCollection):
@@ -54,3 +62,22 @@ class ReverseEngineeringTools(HackingToolsCollection):
         Apk2Gold(),
         Jadx()
     ]
+
+    def pretty_print(self):
+        table = Table(title="Reverse Engineering Tools", show_lines=True, expand=True)
+        table.add_column("Title", style="purple", no_wrap=True)
+        table.add_column("Description", style="purple")
+        table.add_column("Project URL", style="purple", no_wrap=True)
+
+        for t in self.TOOLS:
+            desc = getattr(t, "DESCRIPTION", "") or ""
+            url = getattr(t, "PROJECT_URL", "") or ""
+            table.add_row(t.TITLE, desc.strip().replace("\n", " "), url)
+
+        panel = Panel(table, title="[purple]Available Tools[/purple]", border_style="purple")
+        console.print(panel)
+
+
+if __name__ == "__main__":
+    tools = ReverseEngineeringTools()
+    tools.pretty_print()
