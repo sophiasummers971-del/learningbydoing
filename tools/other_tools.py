@@ -15,6 +15,14 @@ from tools.others.socialmedia_finder import SocialMediaFinderTools
 from tools.others.web_crawling import WebCrawlingTools
 from tools.others.wifi_jamming import WifiJammingTools
 
+from rich.console import Console
+from rich.theme import Theme
+from rich.table import Table
+from rich.panel import Panel
+
+_theme = Theme({"purple": "#7B61FF"})
+console = Console(theme=_theme)
+
 
 class HatCloud(HackingTool):
     TITLE = "HatCloud(Bypass CloudFlare for IP)"
@@ -44,3 +52,29 @@ class OtherTools(HackingToolsCollection):
         WebCrawlingTools(),
         MixTools()
     ]
+
+    def _get_attr(self, obj, *names, default=""):
+        for n in names:
+            if hasattr(obj, n):
+                return getattr(obj, n)
+        return default
+
+    def pretty_print(self):
+        table = Table(title="Other Tools", show_lines=True, expand=True)
+        table.add_column("Title", style="purple", no_wrap=True)
+        table.add_column("Description", style="purple")
+        table.add_column("Project URL", style="purple", no_wrap=True)
+
+        for t in self.TOOLS:
+            title = self._get_attr(t, "TITLE", "Title", "title", default=t.__class__.__name__)
+            desc = self._get_attr(t, "DESCRIPTION", "Description", "description", default="")
+            url = self._get_attr(t, "PROJECT_URL", "PROJECT_URL", "PROJECT", "project_url", "projectUrl", default="")
+            table.add_row(str(title), str(desc).strip().replace("\n", " "), str(url))
+
+        panel = Panel(table, title="[purple]Available Tools[/purple]", border_style="purple")
+        console.print(panel)
+
+
+if __name__ == "__main__":
+    tools = OtherTools()
+    tools.pretty_print()
