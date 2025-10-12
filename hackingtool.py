@@ -1,10 +1,21 @@
 #!/usr/bin/env python3
-# Version 1.1.0
+# Version 1.1.0 (rich UI - purple theme)
 import os
 import sys
 import webbrowser
 from platform import system
 from time import sleep
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+from rich.prompt import Prompt, IntPrompt, Confirm
+from rich.align import Align
+from rich.text import Text
+from rich import box
+from rich.columns import Columns
+from rich.rule import Rule
+from rich.padding import Padding
 
 from core import HackingToolsCollection
 from tools.anonsurf import AnonSurfTools
@@ -26,7 +37,9 @@ from tools.wireless_attack_tools import WirelessAttackTools
 from tools.wordlist_generator import WordlistGeneratorTools
 from tools.xss_attack import XSSAttackTools
 
-logo = """\033[33m
+console = Console()
+
+ASCII_LOGO = r"""
    ▄█    █▄       ▄████████  ▄████████    ▄█   ▄█▄  ▄█  ███▄▄▄▄      ▄██████▄           ███      ▄██████▄   ▄██████▄   ▄█       
   ███    ███     ███    ███ ███    ███   ███ ▄███▀ ███  ███▀▀▀██▄   ███    ███      ▀█████████▄ ███    ███ ███    ███ ███       
   ███    ███     ███    ███ ███    █▀    ███▐██▀   ███▌ ███   ███   ███    █▀          ▀███▀▀██ ███    ███ ███    ███ ███       
@@ -35,11 +48,29 @@ logo = """\033[33m
   ███    ███     ███    ███ ███    █▄    ███▐██▄   ███  ███   ███   ███    ███          ███     ███    ███ ███    ███ ███       
   ███    ███     ███    ███ ███    ███   ███ ▀███▄ ███  ███   ███   ███    ███          ███     ███    ███ ███    ███ ███▌    ▄ 
   ███    █▀      ███    █▀  ████████▀    ███   ▀█▀ █▀    ▀█   █▀    ████████▀          ▄████▀    ▀██████▀   ▀██████▀  █████▄▄██ 
-                                         ▀                                                                            ▀                             
-                                    \033[34m[✔] https://github.com/Z4nzu/hackingtool   [✔]
-                                    \033[34m[✔]            Version 1.1.0               [✔]
-                                    \033[91m[X] Please Don't Use For illegal Activity  [X]
-\033[97m """
+                                         ▀                                                                            ▀            
+"""
+
+tool_definitions = [
+    ("Anonymously Hiding Tools", "🛡️"),
+    ("Information gathering tools", "🔍"),
+    ("Wordlist Generator", "📚"),
+    ("Wireless attack tools", "📶"),
+    ("SQL Injection Tools", "🧩"),
+    ("Phishing attack tools", "🎣"),
+    ("Web Attack tools", "🌐"),
+    ("Post exploitation tools", "🔧"),
+    ("Forensic tools", "🕵️"),
+    ("Payload creation tools", "📦"),
+    ("Exploit framework", "🧰"),
+    ("Reverse engineering tools", "🔁"),
+    ("DDOS Attack Tools", "⚡"),
+    ("Remote Administrator Tools (RAT)", "🖥️"),
+    ("XSS Attack Tools", "💥"),
+    ("Steganograhy tools", "🖼️"),
+    ("Other tools", "✨"),
+    ("Update or Uninstall | Hackingtool", "♻️"),
+]
 
 all_tools = [
     AnonSurfTools(),
@@ -68,55 +99,130 @@ class AllTools(HackingToolsCollection):
     TOOLS = all_tools
 
     def show_info(self):
-        print(logo + '\033[0m \033[97m')
+        header = Text()
+        header.append(ASCII_LOGO, style="bold magenta")
+        header.append("\n\n",)
+        footer = Text.assemble(
+            (" https://github.com/Z4nzu/hackingtool ", "bold bright_black"),
+            (" | ",),
+            ("Version 1.1.0", "bold green"),
+        )
+        warning = Text(" Please Don't Use For illegal Activity ", style="bold red")
+        panel = Panel(
+            Align.center(header + Text("\n") + footer + Text("\n") + warning),
+            box=box.DOUBLE,
+            padding=(1, 2),
+            border_style="magenta"
+        )
+        console.print(panel)
+
+
+def build_menu():
+    table = Table.grid(expand=True)
+    table.add_column("idx", width=6, justify="right")
+    table.add_column("name", justify="left")
+
+    for idx, (title, icon) in enumerate(tool_definitions):
+        if idx == 17:
+            label = "[bold magenta]99[/bold magenta]"
+            name = f"[bold magenta]{icon} {title}[/bold magenta]"
+        else:
+            label = f"[bold magenta]{idx}[/bold magenta]"
+            name = f"[white]{icon}[/white]  [magenta]{title}[/magenta]"
+        table.add_row(label, name)
+
+    top_panel = Panel(
+        Align.center(Text("HackingTool — Main Menu", style="bold white on magenta"), vertical="middle"),
+        style="magenta",
+        padding=(0, 1),
+        box=box.ROUNDED
+    )
+    menu_panel = Panel.fit(
+        table,
+        title="[bold magenta]Select a tool[/bold magenta]",
+        border_style="bright_magenta",
+        box=box.SQUARE
+    )
+    footer = Align.center(Text("Choose number and press Enter — 99 to exit", style="italic bright_black"))
+    console.print(top_panel)
+    console.print(menu_panel)
+    console.print(Rule(style="bright_black"))
+    console.print(footer)
+    console.print("")
+
+
+def choose_path():
+    fpath = os.path.expanduser("~/hackingtoolpath.txt")
+    if not os.path.exists(fpath):
+        os.system("clear" if system() == "Linux" else "cls")
+        build_menu()
+        console.print(Panel("Setup path for tool installations", border_style="magenta"))
+        choice = Prompt.ask("[magenta]Set Path[/magenta]", choices=["1", "2"], default="2")
+        if choice == "1":
+            inpath = Prompt.ask("[magenta]Enter Path (with Directory Name)[/magenta]")
+            with open(fpath, "w") as f:
+                f.write(inpath)
+            console.print(f"[green]Successfully Set Path to:[/green] {inpath}")
+        else:
+            autopath = "/home/hackingtool/"
+            with open(fpath, "w") as f:
+                f.write(autopath)
+            console.print(f"[green]Your Default Path Is:[/green] {autopath}")
+            sleep(1)
+    return fpath
+
+
+def interact_menu():
+    while True:
+        try:
+            build_menu()
+            choice = IntPrompt.ask("[magenta]Choose a tool to proceed[/magenta]", default=0)
+            if choice == 99:
+                console.print(Panel("[bold white on magenta]Goodbye — Come Back Safely[/bold white on magenta]"))
+                break
+            if 0 <= choice < len(all_tools):
+                tool = all_tools[choice]
+                name = tool_definitions[choice][0]
+                console.print(Panel(f"[bold magenta]{tool_definitions[choice][1]}  Selected:[/bold magenta] [white]{name}"))
+                try:
+                    fn = getattr(tool, "show_options", None)
+                    if callable(fn):
+                        fn()
+                    else:
+                        console.print(f"[yellow]Tool '{name}' has no interactive menu (show_options).[/yellow]")
+                except Exception as e:
+                    console.print(Panel(f"[red]Error while opening {name}[/red]\n{e}", border_style="red"))
+                if not Confirm.ask("[magenta]Return to main menu?[/magenta]", default=True):
+                    console.print(Panel("[bold white on magenta]Exiting...[/bold white on magenta]"))
+                    break
+            else:
+                console.print("[red]Invalid selection. Pick a number from the menu.[/red]")
+        except KeyboardInterrupt:
+            console.print("\n[bold red]Interrupted by user — exiting[/bold red]")
+            break
+
+
+def main():
+    try:
+        if system() == "Linux":
+            fpath = choose_path()
+            with open(fpath) as f:
+                archive = f.readline().strip()
+                os.makedirs(archive, exist_ok=True)
+                os.chdir(archive)
+                AllTools().show_info()
+                interact_menu()
+        elif system() == "Windows":
+            console.print(Panel("[bold red]Please run this tool on a Debian/Linux system for best results[/bold red]"))
+            if Confirm.ask("Open guidance link in your browser?", default=True):
+                webbrowser.open_new_tab("https://tinyurl.com/y522modc")
+            sleep(2)
+        else:
+            console.print("[yellow]Please Check Your System or Open New Issue ...[/yellow]")
+    except KeyboardInterrupt:
+        console.print("\n[bold red]Exiting ..!!![/bold red]")
+        sleep(1)
 
 
 if __name__ == "__main__":
-    try:
-        if system() == 'Linux':
-            fpath = os.path.expanduser("~/hackingtoolpath.txt")
-            if not os.path.exists(fpath):
-                os.system('clear')
-                # run.menu()
-                print("""
-                        [@] Set Path (All your tools will be installed in that directory)
-                        [1] Manual 
-                        [2] Default
-                """)
-                choice = input("Z4nzu =>> ").strip()
-
-                if choice == "1":
-                    inpath = input("Enter Path (with Directory Name) >> ").strip()
-                    with open(fpath, "w") as f:
-                        f.write(inpath)
-                    print("Successfully Set Path to: {}".format(inpath))
-                elif choice == "2":
-                    autopath = "/home/hackingtool/"
-                    with open(fpath, "w") as f:
-                        f.write(autopath)
-                    print("Your Default Path Is: {}".format(autopath))
-                    sleep(3)
-                else:
-                    print("Try Again..!!")
-                    sys.exit(0)
-
-            with open(fpath) as f:
-                archive = f.readline()
-                os.makedirs(archive, exist_ok=True)
-                os.chdir(archive)
-                AllTools().show_options()
-
-        # If not Linux and probably Windows
-        elif system() == "Windows":
-            print(
-                r"\033[91m Please Run This Tool On A Debian System For Best Results\e[00m"
-            )
-            sleep(2)
-            webbrowser.open_new_tab("https://tinyurl.com/y522modc")
-
-        else:
-            print("Please Check Your System or Open New Issue ...")
-
-    except KeyboardInterrupt:
-        print("\nExiting ..!!!")
-        sleep(2)
+    main()
