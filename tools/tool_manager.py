@@ -6,6 +6,14 @@ from time import sleep
 from core import HackingTool
 from core import HackingToolsCollection
 
+from rich.console import Console
+from rich.theme import Theme
+from rich.table import Table
+from rich.panel import Panel
+
+_theme = Theme({"purple": "#7B61FF"})
+console = Console(theme=_theme)
+
 
 class UpdateTool(HackingTool):
     TITLE = "Update Tool or System"
@@ -15,7 +23,7 @@ class UpdateTool(HackingTool):
         super(UpdateTool, self).__init__([
             ("Update System", self.update_sys),
             ("Update Hackingtool", self.update_ht)
-        ], installable = False, runnable = False)
+        ], installable=False, runnable=False)
 
     def update_sys(self):
         os.system("sudo apt update && sudo apt full-upgrade -y")
@@ -44,7 +52,7 @@ class UninstallTool(HackingTool):
     def __init__(self):
         super(UninstallTool, self).__init__([
             ('Uninstall', self.uninstall)
-        ], installable = False, runnable = False)
+        ], installable=False, runnable=False)
 
     def uninstall(self):
         print("hackingtool started to uninstall..\n")
@@ -64,3 +72,20 @@ class ToolManager(HackingToolsCollection):
         UpdateTool(),
         UninstallTool()
     ]
+
+    def pretty_print(self):
+        table = Table(title="Tool Manager — Update / Uninstall", show_lines=True, expand=True)
+        table.add_column("Title", style="purple", no_wrap=True)
+        table.add_column("Description", style="purple")
+
+        for t in self.TOOLS:
+            desc = getattr(t, "DESCRIPTION", "") or ""
+            table.add_row(t.TITLE, desc.strip().replace("\n", " "))
+
+        panel = Panel(table, title="[purple]Available Manager Tools[/purple]", border_style="purple")
+        console.print(panel)
+
+
+if __name__ == "__main__":
+    manager = ToolManager()
+    manager.pretty_print()
