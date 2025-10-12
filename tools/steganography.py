@@ -5,6 +5,14 @@ from core import HackingTool
 from core import HackingToolsCollection
 from core import validate_input
 
+from rich.console import Console
+from rich.theme import Theme
+from rich.table import Table
+from rich.panel import Panel
+
+_theme = Theme({"purple": "#7B61FF"})
+console = Console(theme=_theme)
+
 
 class SteganoHide(HackingTool):
     TITLE = "SteganoHide"
@@ -47,11 +55,10 @@ class StegnoCracker(HackingTool):
         passfile = input("Enter Wordlist Filename:- ")
         subprocess.run(["stegcracker", filename, passfile])
 
-        
+
 class StegoCracker(HackingTool):
     TITLE = "StegoCracker"
-    DESCRIPTION = "StegoCracker is a tool that let's you hide data into image or audio files and can retrieve from a file " 
-                  
+    DESCRIPTION = "StegoCracker is a tool that let's you hide data into image or audio files and can retrieve from a file "
     INSTALL_COMMANDS = [
         "sudo git clone https://github.com/W1LDN16H7/StegoCracker.git",
         "sudo chmod -R 755 StegoCracker"
@@ -60,7 +67,7 @@ class StegoCracker(HackingTool):
                    "./install.sh"
     ]
     PROJECT_URL = "https://github.com/W1LDN16H7/StegoCracker"
-    
+
 
 class Whitespace(HackingTool):
     TITLE = "Whitespace"
@@ -80,6 +87,23 @@ class SteganographyTools(HackingToolsCollection):
         StegnoCracker(),
         StegoCracker(),
         Whitespace()
-        
-        
     ]
+
+    def pretty_print(self):
+        table = Table(title="Steganography Tools", show_lines=True, expand=True)
+        table.add_column("Title", style="purple", no_wrap=True)
+        table.add_column("Description", style="purple")
+        table.add_column("Project URL", style="purple", no_wrap=True)
+
+        for t in self.TOOLS:
+            desc = getattr(t, "DESCRIPTION", "") or ""
+            url = getattr(t, "PROJECT_URL", "") or ""
+            table.add_row(t.TITLE, desc.strip().replace("\n", " "), url)
+
+        panel = Panel(table, title="[purple]Available Tools[/purple]", border_style="purple")
+        console.print(panel)
+
+
+if __name__ == "__main__":
+    tools = SteganographyTools()
+    tools.pretty_print()
