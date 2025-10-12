@@ -1,7 +1,16 @@
+# coding=utf-8
 import os
 
 from core import HackingTool
 from core import HackingToolsCollection
+
+from rich.console import Console
+from rich.theme import Theme
+from rich.table import Table
+from rich.panel import Panel
+
+_theme = Theme({"purple": "#7B61FF"})
+console = Console(theme=_theme)
 
 
 class TheFatRat(HackingTool):
@@ -49,7 +58,7 @@ class Brutal(HackingTool):
             >> TeensyDuino
             >> Linux udev rules
             >> Copy and paste the PaensyLib folder inside your Arduino libraries
-    
+
         [!] Kindly Visit below link for Installation for Arduino 
             >> https://github.com/Screetsec/Brutal/wiki/Install-Requirements 
         """)
@@ -138,3 +147,22 @@ class PayloadCreatorTools(HackingToolsCollection):
         MobDroid(),
         Enigma()
     ]
+
+    def pretty_print(self):
+        table = Table(title="Payload Creation Tools", show_lines=True, expand=True)
+        table.add_column("Title", style="purple", no_wrap=True)
+        table.add_column("Description", style="purple")
+        table.add_column("Project URL", style="purple", no_wrap=True)
+
+        for t in self.TOOLS:
+            desc = getattr(t, "DESCRIPTION", "") or ""
+            url = getattr(t, "PROJECT_URL", "") or ""
+            table.add_row(t.TITLE, desc.strip().replace("\n", " "), url)
+
+        panel = Panel(table, title="[purple]Available Tools[/purple]", border_style="purple")
+        console.print(panel)
+
+
+if __name__ == "__main__":
+    tools = PayloadCreatorTools()
+    tools.pretty_print()
