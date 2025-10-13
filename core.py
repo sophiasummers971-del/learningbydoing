@@ -3,6 +3,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich import box
 from rich.traceback import install
+from rich.theme import Theme
 
 import os
 import sys
@@ -13,7 +14,8 @@ from typing import Callable, List, Tuple
 
 # Enable rich tracebacks
 install()
-console = Console()
+_theme = Theme({"purple": "#7B61FF"})
+console = Console(theme=_theme)
 
 
 def clear_screen():
@@ -46,9 +48,9 @@ class HackingTool(object):
         if isinstance(options, list):
             self.OPTIONS = []
             if installable:
-                self.OPTIONS.append(('Install', self.install))
+                self.OPTIONS.append(("Install", self.install))
             if runnable:
-                self.OPTIONS.append(('Run', self.run))
+                self.OPTIONS.append(("Run", self.run))
             self.OPTIONS.extend(options)
         else:
             raise Exception("options must be a list of (option_name, option_fn) tuples")
@@ -57,7 +59,7 @@ class HackingTool(object):
         desc = f"[cyan]{self.DESCRIPTION}[/cyan]"
         if self.PROJECT_URL:
             desc += f"\n[green]🔗 {self.PROJECT_URL}[/green]"
-        console.print(Panel(desc, title=f"[bold magenta]{self.TITLE}[/bold magenta]", border_style="magenta", box=box.DOUBLE))
+        console.print(Panel(desc, title=f"[bold purple]{self.TITLE}[/bold purple]", border_style="purple", box=box.DOUBLE))
 
     def show_options(self, parent=None):
         clear_screen()
@@ -153,7 +155,7 @@ class HackingToolsCollection(object):
         pass
 
     def show_info(self):
-        console.rule(f"[bold magenta]{self.TITLE}[/bold magenta]", style="magenta")
+        console.rule(f"[bold purple]{self.TITLE}[/bold purple]", style="purple")
         console.print(f"[italic cyan]{self.DESCRIPTION}[/italic cyan]\n")
 
     def show_options(self, parent=None):
