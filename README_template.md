@@ -41,7 +41,7 @@
     
     sudo pip3 install -r requirements.txt
     
-    bash install.sh
+    python install.py
     
     sudo hackingtool
 

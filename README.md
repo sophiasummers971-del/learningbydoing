@@ -233,7 +233,7 @@
 
 ## Step : 4 Run hackingtool
     
-    sudo bash install.sh
+    sudo python install.py
 
 ## Step : 5 For installing tools in directory
 
