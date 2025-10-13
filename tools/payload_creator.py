@@ -8,6 +8,7 @@ from rich.console import Console
 from rich.theme import Theme
 from rich.table import Table
 from rich.panel import Panel
+from rich.prompt import Prompt
 
 _theme = Theme({"purple": "#7B61FF"})
 console = Console(theme=_theme)
@@ -15,8 +16,8 @@ console = Console(theme=_theme)
 
 class TheFatRat(HackingTool):
     TITLE = "The FatRat"
-    DESCRIPTION = "TheFatRat Provides An Easy way to create Backdoors and \n" \
-                  "Payload which can bypass most anti-virus"
+    DESCRIPTION = "TheFatRat Provides An Easy way to create Backdoors and Payloads " \
+                  "which can bypass most anti-virus"
     INSTALL_COMMANDS = [
         "sudo git clone https://github.com/Screetsec/TheFatRat.git",
         "cd TheFatRat && sudo chmod +x setup.sh"
@@ -31,8 +32,7 @@ class TheFatRat(HackingTool):
         ])
 
     def update(self):
-        os.system(
-            "cd TheFatRat && bash update && chmod +x setup.sh && bash setup.sh")
+        os.system("cd TheFatRat && bash update && chmod +x setup.sh && bash setup.sh")
 
     def troubleshoot(self):
         os.system("cd TheFatRat && sudo chmod +x chk_tools && ./chk_tools")
@@ -40,9 +40,8 @@ class TheFatRat(HackingTool):
 
 class Brutal(HackingTool):
     TITLE = "Brutal"
-    DESCRIPTION = "Brutal is a toolkit to quickly create various payload," \
-                  "powershell attack,\nvirus attack and launch listener for " \
-                  "a Human Interface Device"
+    DESCRIPTION = "Brutal is a toolkit to quickly create various payloads, powershell attacks, " \
+                  "virus attacks and launch listener for a Human Interface Device"
     INSTALL_COMMANDS = [
         "sudo git clone https://github.com/Screetsec/Brutal.git",
         "cd Brutal && sudo chmod +x Brutal.sh"
@@ -52,22 +51,22 @@ class Brutal(HackingTool):
 
     def show_info(self):
         super(Brutal, self).show_info()
-        print("""
-        [!] Requirement
-            >> Arduino Software (I used v1.6.7)
-            >> TeensyDuino
-            >> Linux udev rules
-            >> Copy and paste the PaensyLib folder inside your Arduino libraries
+        console.print("""
+[!] Requirement
+    >> Arduino Software (I used v1.6.7)
+    >> TeensyDuino
+    >> Linux udev rules
+    >> Copy and paste the PaensyLib folder inside your Arduino libraries
 
-        [!] Kindly Visit below link for Installation for Arduino 
-            >> https://github.com/Screetsec/Brutal/wiki/Install-Requirements 
-        """)
+[!] Visit for Installation for Arduino: 
+    >> https://github.com/Screetsec/Brutal/wiki/Install-Requirements 
+""")
 
 
 class Stitch(HackingTool):
     TITLE = "Stitch"
-    DESCRIPTION = "Stitch is Cross Platform Python Remote Administrator Tool\n\t" \
-                  "[!] Refer Below Link For Wins & MAc Os"
+    DESCRIPTION = "Stitch is Cross Platform Python Remote Administrator Tool\n" \
+                  "[!] Refer Below Link For Wins & Mac OS"
     INSTALL_COMMANDS = [
         "sudo git clone https://github.com/nathanlopez/Stitch.git",
         "cd Stitch && sudo pip install -r lnx_requirements.txt"
@@ -78,10 +77,8 @@ class Stitch(HackingTool):
 
 class MSFVenom(HackingTool):
     TITLE = "MSFvenom Payload Creator"
-    DESCRIPTION = "MSFvenom Payload Creator (MSFPC) is a wrapper to generate \n" \
-                  "multiple types of payloads, based on users choice.\n" \
-                  "The idea is to be as simple as possible (only requiring " \
-                  "one input) \nto produce their payload."
+    DESCRIPTION = "MSFvenom Payload Creator (MSFPC) is a wrapper to generate multiple types of payloads, " \
+                  "based on user choice. Simplifies payload creation."
     INSTALL_COMMANDS = [
         "sudo git clone https://github.com/g0tmi1k/msfpc.git",
         "cd msfpc;sudo chmod +x msfpc.sh"
@@ -92,9 +89,7 @@ class MSFVenom(HackingTool):
 
 class Venom(HackingTool):
     TITLE = "Venom Shellcode Generator"
-    DESCRIPTION = "venom 1.0.11 (malicious_server) was build to take " \
-                  "advantage of \n apache2 webserver to deliver payloads " \
-                  "(LAN) using a fake webpage written in html"
+    DESCRIPTION = "Venom 1.0.11 (malicious_server) exploits apache2 webserver to deliver LAN payloads via fake webpages."
     INSTALL_COMMANDS = [
         "sudo git clone https://github.com/r00t-3xp10it/venom.git",
         "sudo chmod -R 775 venom*/ && cd venom*/ && cd aux && sudo bash setup.sh",
@@ -106,8 +101,7 @@ class Venom(HackingTool):
 
 class Spycam(HackingTool):
     TITLE = "Spycam"
-    DESCRIPTION = "Script to generate a Win32 payload that takes the webcam " \
-                  "image every 1 minute and send it to the attacker"
+    DESCRIPTION = "Generates a Win32 payload that captures webcam images every 1 minute and sends them to the attacker."
     INSTALL_COMMANDS = [
         "sudo git clone https://github.com/indexnotfound404/spycam.git",
         "cd spycam && bash install.sh && chmod +x spycam"
@@ -118,19 +112,20 @@ class Spycam(HackingTool):
 
 class MobDroid(HackingTool):
     TITLE = "Mob-Droid"
-    DESCRIPTION = "Mob-Droid helps you to generate metasploit payloads in " \
-                  "easy way\n without typing long commands and save your time"
+    DESCRIPTION = "Generates metasploit payloads easily without typing long commands."
     INSTALL_COMMANDS = [
-        "git clone https://github.com/kinghacker0/mob-droid.git"]
+        "git clone https://github.com/kinghacker0/mob-droid.git"
+    ]
     RUN_COMMANDS = ["cd mob-droid;sudo python mob-droid.py"]
     PROJECT_URL = "https://github.com/kinghacker0/Mob-Droid"
 
 
 class Enigma(HackingTool):
     TITLE = "Enigma"
-    DESCRIPTION = "Enigma is a Multiplatform payload dropper"
+    DESCRIPTION = "Enigma is a Multiplatform payload dropper."
     INSTALL_COMMANDS = [
-        "sudo git clone https://github.com/UndeadSec/Enigma.git"]
+        "sudo git clone https://github.com/UndeadSec/Enigma.git"
+    ]
     RUN_COMMANDS = ["cd Enigma;sudo python enigma.py"]
     PROJECT_URL = "https://github.com/UndeadSec/Enigma"
 
@@ -159,10 +154,48 @@ class PayloadCreatorTools(HackingToolsCollection):
             url = getattr(t, "PROJECT_URL", "") or ""
             table.add_row(t.TITLE, desc.strip().replace("\n", " "), url)
 
-        panel = Panel(table, title="[purple]Available Tools[/purple]", border_style="purple")
-        console.print(panel)
+        console.print(Panel(table, title="[purple]Available Tools[/purple]", border_style="purple"))
+
+    def show_options(self):
+        console.print("\n")
+        console.print(Panel.fit(
+            "[bold purple]Payload Creator Collection[/bold purple]\n"
+            "Select a tool to run it or exit.",
+            border_style="purple"
+        ))
+
+        table = Table(title="[bold cyan]Available Tools[/bold cyan]", show_lines=True, expand=True)
+        table.add_column("Index", justify="center", style="bold yellow")
+        table.add_column("Tool Name", justify="left", style="bold green")
+        table.add_column("Description", justify="left", style="white")
+
+        for i, tool in enumerate(self.TOOLS):
+            desc = getattr(tool, "DESCRIPTION", "") or "—"
+            table.add_row(str(i + 1), tool.TITLE, desc.replace("\n", " "))
+
+        table.add_row("[red]99[/red]", "[bold red]Exit[/bold red]", "Return to previous menu")
+        console.print(table)
+
+        try:
+            choice = Prompt.ask("[bold cyan]Select a tool to run[/bold cyan]", default="99")
+            choice = int(choice)
+            if 1 <= choice <= len(self.TOOLS):
+                selected = self.TOOLS[choice - 1]
+                if hasattr(selected, "run"):
+                    selected.run()
+                elif hasattr(selected, "show_actions"):
+                    selected.show_actions()
+                else:
+                    console.print("[bold yellow]Selected tool has no runnable interface.[/bold yellow]")
+            elif choice == 99:
+                return 99
+        except Exception:
+            console.print("[bold red]Invalid choice. Try again.[/bold red]")
+
+        return self.show_options()
 
 
 if __name__ == "__main__":
     tools = PayloadCreatorTools()
     tools.pretty_print()
+    tools.show_options()

@@ -201,7 +201,6 @@ def interact_menu():
             console.print("\n[bold red]Interrupted by user — exiting[/bold red]")
             break
 
-
 def main():
     try:
         if system() == "Linux":

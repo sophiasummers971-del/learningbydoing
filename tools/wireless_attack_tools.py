@@ -1,5 +1,6 @@
 # coding=utf-8
 import os
+import subprocess
 
 from core import HackingTool
 from core import HackingToolsCollection
@@ -8,6 +9,7 @@ from rich.console import Console
 from rich.theme import Theme
 from rich.table import Table
 from rich.panel import Panel
+from rich.prompt import Prompt
 
 _theme = Theme({"purple": "#7B61FF"})
 console = Console(theme=_theme)
@@ -51,9 +53,9 @@ class pixiewps(HackingTool):
         os.system(
             'echo "'
             '1.> Put your interface into monitor mode using '
-            '\'airmon-ng start {wireless interface}\n'
-            '2.> wash -i {monitor-interface like mon0}\'\n'
-            '3.> reaver -i {monitor interface} -b {BSSID of router} -c {router channel} -vvv -K 1 -f"'
+            "'airmon-ng start {wireless interface}\n'"
+            "'2.> wash -i {monitor-interface like mon0}\'\n'"
+            "'3.> reaver -i {monitor interface} -b {BSSID of router} -c {router channel} -vvv -K 1 -f"
             '| boxes -d boy'
         )
         print("You Have To Run Manually By USing >>pixiewps -h ")
@@ -187,7 +189,45 @@ class WirelessAttackTools(HackingToolsCollection):
         panel = Panel(table, title="[purple]Available Tools[/purple]", border_style="purple")
         console.print(panel)
 
+    def show_options(self, parent=None):
+        console.print("\n")
+        panel = Panel.fit("[bold magenta]Wireless Attack Tools Collection[/bold magenta]\n"
+                          "Select a tool to view options or run it.",
+                          border_style="purple")
+        console.print(panel)
+
+        table = Table(title="[bold cyan]Available Tools[/bold cyan]", show_lines=True, expand=True)
+        table.add_column("Index", justify="center", style="bold yellow")
+        table.add_column("Tool Name", justify="left", style="bold green")
+        table.add_column("Description", justify="left", style="white")
+
+        for i, tool in enumerate(self.TOOLS):
+            title = getattr(tool, "TITLE", tool.__class__.__name__)
+            desc = getattr(tool, "DESCRIPTION", "—")
+            table.add_row(str(i + 1), title, desc or "—")
+
+        table.add_row("[red]99[/red]", "[bold red]Exit[/bold red]", "Return to previous menu")
+        console.print(table)
+
+        try:
+            choice = Prompt.ask("[bold cyan]Select a tool to run[/bold cyan]", default="99")
+            choice = int(choice)
+            if 1 <= choice <= len(self.TOOLS):
+                selected = self.TOOLS[choice - 1]
+                if hasattr(selected, "show_options"):
+                    selected.show_options(parent=self)
+                elif hasattr(selected, "run"):
+                    selected.run()
+                else:
+                    console.print("[bold yellow]Selected tool has no runnable interface.[/bold yellow]")
+            elif choice == 99:
+                return 99
+        except Exception:
+            console.print("[bold red]Invalid choice. Try again.[/bold red]")
+        return self.show_options(parent=parent)
+
 
 if __name__ == "__main__":
     tools = WirelessAttackTools()
     tools.pretty_print()
+    tools.show_options()

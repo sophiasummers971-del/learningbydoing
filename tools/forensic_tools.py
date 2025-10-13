@@ -13,6 +13,8 @@ from core import HackingToolsCollection
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
+from rich.table import Table
+from rich.prompt import Prompt
 
 console = Console()
 PURPLE_STYLE = "bold magenta"
@@ -106,3 +108,72 @@ class ForensicTools(HackingToolsCollection):
         Guymager(),
         Toolsley()
     ]
+
+    def _get_attr(self, obj, *names, default=""):
+        for n in names:
+            if hasattr(obj, n):
+                return getattr(obj, n)
+        return default
+
+    def pretty_print(self):
+        table = Table(title="Forensic Tools", show_lines=True, expand=True)
+        table.add_column("Title", style=PURPLE_STYLE, no_wrap=True)
+        table.add_column("Description", style=PURPLE_STYLE)
+        table.add_column("Project URL", style=PURPLE_STYLE, no_wrap=True)
+
+        for t in self.TOOLS:
+            title = self._get_attr(t, "TITLE", "Title", "title", default=t.__class__.__name__)
+            desc = self._get_attr(t, "DESCRIPTION", "Description", "description", default="")
+            url = self._get_attr(t, "PROJECT_URL", "PROJECT_URL", "PROJECT", "project_url", "projectUrl", default="")
+            table.add_row(str(title), str(desc).replace("\n", " "), str(url))
+
+        console.print(Panel(table, title=f"[magenta]Available Tools[/magenta]", border_style=PURPLE_STYLE))
+
+    def show_options(self, parent=None):
+        console.print("\n")
+        console.print(Panel.fit(
+            "[bold magenta]Forensic Tools Collection[/bold magenta]\n"
+            "Select a tool to run or view options.",
+            border_style=PURPLE_STYLE
+        ))
+
+        table = Table(title="[bold cyan]Available Tools[/bold cyan]", show_lines=True)
+        table.add_column("Index", justify="center", style="bold yellow")
+        table.add_column("Tool Name", justify="left", style="bold green")
+        table.add_column("Description", justify="left", style="white")
+
+        for i, tool in enumerate(self.TOOLS):
+            title = self._get_attr(tool, "TITLE", "Title", "title", default=tool.__class__.__name__)
+            desc = self._get_attr(tool, "DESCRIPTION", "Description", "description", default="—")
+            table.add_row(str(i + 1), title, desc or "—")
+
+        table.add_row("[red]99[/red]", "[bold red]Exit[/bold red]", "Return to previous menu")
+        console.print(table)
+
+        try:
+            choice = Prompt.ask("[bold cyan]Select a tool to run[/bold cyan]", default="99")
+            choice = int(choice)
+            if 1 <= choice <= len(self.TOOLS):
+                selected = self.TOOLS[choice - 1]
+                # delegate to collection-like tools if available
+                if hasattr(selected, "show_options"):
+                    selected.show_options(parent=self)
+                # if tool exposes actions (like BulkExtractor) and has a menu, try to show it
+                elif hasattr(selected, "show_actions"):
+                    selected.show_actions(parent=self)
+                # otherwise try to call run if present
+                elif hasattr(selected, "run"):
+                    selected.run()
+                else:
+                    console.print("[bold yellow]Selected tool has no runnable interface.[/bold yellow]")
+            elif choice == 99:
+                return 99
+        except Exception:
+            console.print("[bold red]Invalid choice. Try again.[/bold red]")
+        return self.show_options(parent=parent)
+
+
+if __name__ == "__main__":
+    tools = ForensicTools()
+    tools.pretty_print()
+    tools.show_options()
