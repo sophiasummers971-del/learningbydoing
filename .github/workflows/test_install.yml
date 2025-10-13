@@ -26,7 +26,7 @@ jobs:
           cache: 'pip'
       - run: pip install --upgrade pip
       - run: pwd && ls -hal
-      - run: sudo ./install.sh 1
+      - run: sudo ./install.py 1
       - run: pwd && ls -hal
       # Typing "1" will allow us to manually enter the filepath to hackingtool.
       # Provide the filepath ${HOME}/work/hackingtool/hackingtool
