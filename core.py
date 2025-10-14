@@ -103,11 +103,262 @@ class HackingTool(object):
 
     def install(self):
         self.before_install()
-        if isinstance(self.INSTALL_COMMANDS, (list, tuple)):
-            for INSTALL_COMMAND in self.INSTALL_COMMANDS:
-                console.print(f"[yellow]→ {INSTALL_COMMAND}[/yellow]")
-                os.system(INSTALL_COMMAND)
-            self.after_install()
+        commands = list(self.INSTALL_COMMANDS) if isinstance(self.INSTALL_COMMANDS, (list, tuple)) else []
+
+        if not commands:
+            console.print("[yellow]No install commands defined for this tool.[/yellow]")
+            return
+
+        console.print(Panel(
+            "[bold]Choose installation method[/bold]\n\n"
+            "1) Install inside a new venv (recommended)\n"
+            "2) Install with '--break' flag (sudo prefixed)\n"
+            "3) Cancel",
+            title="[purple]Install Method[/purple]", border_style="purple"
+        ))
+        choice = input("\n[?] Select method (1/2/3): ").strip()
+
+        try:
+            choice_i = int(choice)
+        except Exception:
+            console.print("[red]⚠ Invalid selection. Aborting install.[/red]")
+            return
+
+        if choice_i == 3:
+            console.print("[yellow]Installation cancelled by user.[/yellow]")
+            return
+
+        use_venv = choice_i == 1
+        use_break = choice_i == 2
+
+        is_windows = system() == "Windows"
+
+        def maybe_sudo(cmd: str) -> str:
+            if is_windows:
+                return cmd
+            stripped = cmd.lstrip()
+            if stripped.startswith("sudo "):
+                return cmd
+            return "sudo " + cmd
+
+        import shlex
+        import shutil
+
+        def _handle_git_clone(orig_cmd: str, maybe_sudo_fn) -> bool:
+            cmd = orig_cmd.strip()
+            parts = shlex.split(cmd)
+            if len(parts) < 3 or parts[0] != "git" or parts[1] != "clone":
+                return None
+
+            repo_url = parts[2]
+            if len(parts) >= 4:
+                target = parts[3]
+            else:
+                target = os.path.basename(repo_url.rstrip("/")).replace(".git", "")
+
+            target_path = os.path.abspath(target)
+
+            if not os.path.exists(target_path):
+                run_cmd = maybe_sudo_fn(f'git clone {repo_url} "{target}"')
+                console.print(f"[yellow]→ {run_cmd}[/yellow]")
+                rc = os.system(run_cmd)
+                return rc == 0
+
+            is_git_repo = os.path.isdir(os.path.join(target_path, ".git"))
+
+            try:
+                is_empty = len(os.listdir(target_path)) == 0
+            except Exception:
+                is_empty = False
+
+            if is_empty:
+                run_cmd = maybe_sudo_fn(f'git clone {repo_url} "{target}"')
+                console.print(f"[yellow]→ {run_cmd}[/yellow]")
+                rc = os.system(run_cmd)
+                return rc == 0
+
+            console.print(Panel(
+                f"[bold]Target '{target_path}' already exists and is not empty.[/bold]\n\n"
+                "Choose action:\n"
+                "1) Skip this git clone\n"
+                "2) Remove existing directory and clone\n"
+                "3) If repo, run 'git pull' inside existing directory\n"
+                "4) Clone into a different directory",
+                title="[purple]git clone conflict[/purple]",
+                border_style="purple"
+            ))
+
+            choice = input("\n[?] Select (1/2/3/4): ").strip()
+            try:
+                choice_i = int(choice)
+            except Exception:
+                console.print("[red]Invalid selection — skipping by default.[/red]")
+                return True
+
+            if choice_i == 1:
+                console.print("[yellow]Skipping git clone.[/yellow]")
+                return True
+
+            if choice_i == 2:
+                rm_cmd = maybe_sudo_fn(f'rm -rf "{target_path}"')
+                console.print(f"[yellow]→ {rm_cmd}[/yellow]")
+                rc = os.system(rm_cmd)
+                if rc != 0:
+                    console.print(f"[red]Failed to remove {target_path} (exit {rc}).[/red]")
+                    return False
+                run_cmd = maybe_sudo_fn(f'git clone {repo_url} "{target}"')
+                console.print(f"[yellow]→ {run_cmd}[/yellow]")
+                rc2 = os.system(run_cmd)
+                return rc2 == 0
+
+            if choice_i == 3:
+                if not is_git_repo:
+                    console.print("[red]Existing dir is not a git repository — cannot pull.[/red]")
+                    return False
+                pull_cmd = maybe_sudo_fn(f'git -C "{target_path}" pull')
+                console.print(f"[yellow]→ {pull_cmd}[/yellow]")
+                rc = os.system(pull_cmd)
+                return rc == 0
+
+            if choice_i == 4:
+                new_dir = input("Enter new directory name: ").strip()
+                if not new_dir:
+                    console.print("[red]No directory provided — skipping.[/red]")
+                    return True
+                run_cmd = maybe_sudo_fn(f'git clone {repo_url} "{new_dir}"')
+                console.print(f"[yellow]→ {run_cmd}[/yellow]")
+                rc = os.system(run_cmd)
+                return rc == 0
+
+            console.print("[yellow]No valid option selected — skipping git clone.[/yellow]")
+            return True
+
+        if use_venv:
+            venv_dir = os.path.expanduser("~/.venv_tool")
+            parent = os.path.dirname(venv_dir)
+            if parent and not os.path.exists(parent):
+                try:
+                    os.makedirs(parent, exist_ok=True)
+                except Exception:
+                    console.print(f"[red]Unable to create parent directory for venv: {parent}[/red]")
+                    return
+
+            if is_windows:
+                create_cmd = f'python -m venv "{venv_dir}"'
+            else:
+                create_cmd = f'python3 -m venv "{venv_dir}" || python -m venv "{venv_dir}"'
+
+            console.print(f"[yellow]→ {maybe_sudo(create_cmd)}[/yellow]")
+            rc = os.system(maybe_sudo(create_cmd))
+            if rc != 0:
+                console.print(f"[red]Failed to create venv (exit {rc}).[/red]")
+                return
+
+            if is_windows:
+                venv_python = os.path.join(venv_dir, "Scripts", "python.exe")
+                venv_pip = os.path.join(venv_dir, "Scripts", "pip.exe")
+            else:
+                venv_python = os.path.join(venv_dir, "bin", "python")
+                venv_pip = os.path.join(venv_dir, "bin", "pip")
+
+            all_ok = True
+            for orig_cmd in commands:
+                cmd = orig_cmd.strip()
+                lower = cmd.lower()
+
+                if lower.startswith("pip ") or lower.startswith("pip3 ") or ("-m pip install" in lower):
+                    parts = cmd.split()
+                    if parts[0] in ("pip", "pip3"):
+                        new_cmd = f'"{venv_pip}" ' + " ".join(parts[1:])
+                    else:
+                        rest = cmd[cmd.find("-m pip") + len("-m pip"):].strip()
+                        new_cmd = f'"{venv_python}" -m pip {rest}'
+                    cmd_to_run = maybe_sudo(new_cmd)
+                elif lower.startswith("python ") or lower.startswith("python3 "):
+                    parts = cmd.split()
+                    parts[0] = f'"{venv_python}"'
+                    cmd_to_run = maybe_sudo(" ".join(parts))
+                elif cmd.strip().lower().startswith("git clone"):
+                    ok = _handle_git_clone(cmd, maybe_sudo)
+                    if ok is None:
+                        cmd_to_run = maybe_sudo(cmd)
+                        console.print(f"[yellow]→ {cmd_to_run}[/yellow]")
+                        rc = os.system(cmd_to_run)
+                        if rc != 0:
+                            console.print(f"[red]Command failed with exit code {rc}: {cmd}[/red]")
+                            all_ok = False
+                            break
+                        continue
+                    else:
+                        if not ok:
+                            all_ok = False
+                            break
+                        else:
+                            continue
+                else:
+                    cmd_to_run = maybe_sudo(cmd)
+
+                console.print(f"[yellow]→ {cmd_to_run}[/yellow]")
+                rc = os.system(cmd_to_run)
+                if rc != 0:
+                    console.print(f"[red]Command failed with exit code {rc}: {cmd}[/red]")
+                    all_ok = False
+                    break
+
+            if all_ok:
+                self.after_install()
+            else:
+                console.print("[red]✖ Installation encountered errors.[/red]")
+            return
+
+        if use_break:
+            all_ok = True
+            for orig_cmd in commands:
+                cmd = orig_cmd
+                lower_cmd = cmd.lower()
+
+                skip_break = (
+                    "git clone" in lower_cmd
+                    or "wget" in lower_cmd
+                    or "curl" in lower_cmd
+                    or "http" in lower_cmd
+                    or "https" in lower_cmd
+                )
+
+                if (not skip_break) and ("--break" not in cmd):
+                    cmd = cmd.strip() + " --break"
+
+                if cmd.strip().lower().startswith("git clone"):
+                    ok = _handle_git_clone(cmd, maybe_sudo)
+                    if ok is None:
+                        cmd_to_run = maybe_sudo(cmd)
+                        console.print(f"[yellow]→ {cmd_to_run}[/yellow]")
+                        rc = os.system(cmd_to_run)
+                        if rc != 0:
+                            console.print(f"[red]Command failed with exit code {rc}: {cmd}[/red]")
+                            all_ok = False
+                            break
+                        continue
+                    else:
+                        if not ok:
+                            all_ok = False
+                            break
+                        else:
+                            continue
+
+                cmd_to_run = maybe_sudo(cmd)
+                console.print(f"[yellow]→ {cmd_to_run}[/yellow]")
+                rc = os.system(cmd_to_run)
+                if rc != 0:
+                    console.print(f"[red]Command failed with exit code {rc}: {cmd}[/red]")
+                    all_ok = False
+                    break
+
+            if all_ok:
+                self.after_install()
+            else:
+                console.print("[red]✖ Installation encountered errors.[/red]")
+
 
     def after_install(self):
         console.print("[green]✔ Successfully installed![/green]")
