@@ -1,5 +1,7 @@
 import os
+import shlex
 import shutil
+import subprocess
 import sys
 import webbrowser
 from collections.abc import Callable
@@ -37,8 +39,96 @@ _theme = Theme({
 console = Console(theme=_theme)
 
 
+# ---------------------------------------------------------------------------
+# Allowlist of base commands that tool definitions are permitted to execute.
+# Any command whose first token (after an optional leading "sudo") is NOT in
+# this set will be blocked before execution.
+# ---------------------------------------------------------------------------
+ALLOWED_BASE_COMMANDS: frozenset[str] = frozenset({
+    # Package managers
+    "apt", "apt-get", "yum", "dnf", "pacman", "brew",
+    "pip", "pip3", "gem", "npm", "yarn", "go", "cargo",
+    # Version control
+    "git", "svn",
+    # Build / compile
+    "make", "cmake",
+    # Language runtimes / interpreters
+    "python", "python3", "ruby", "node", "java", "php", "perl",
+    # Common shell utilities used by install scripts
+    "sudo", "chmod", "chown", "mkdir", "cp", "mv", "rm",
+    "tar", "unzip", "zip", "curl", "wget", "bash", "sh",
+    # Screen / navigation used in chained commands
+    "clear", "cls", "cd", "echo",
+})
+
+
+def _run_single_command(cmd: str, cwd: str | None = None) -> tuple[int, str | None]:
+    """Execute one simple (non-chained) command with ``shell=False``.
+
+    ``cd`` is emulated in-process by updating *cwd* so that subsequent
+    sub-commands in a ``&&`` chain see the correct working directory.
+
+    Returns ``(returncode, updated_cwd)``.
+    """
+    cmd = cmd.strip()
+    if not cmd:
+        return 0, cwd
+
+    try:
+        tokens = shlex.split(cmd)
+    except ValueError:
+        console.print(f"[error]Malformed command skipped: {cmd!r}[/error]")
+        return 1, cwd
+
+    if not tokens:
+        return 0, cwd
+
+    # Determine effective base command (skip a leading 'sudo')
+    base = tokens[0] if tokens[0] != "sudo" else (tokens[1] if len(tokens) > 1 else "")
+    base = os.path.basename(base)
+
+    if base not in ALLOWED_BASE_COMMANDS:
+        console.print(f"[error]Command blocked (not in allowlist): {base!r}[/error]")
+        return 1, cwd
+
+    # Emulate 'cd' in-process so subsequent sub-commands in a chain run in the
+    # correct directory without requiring shell=True.
+    if base == "cd":
+        target = tokens[-1] if len(tokens) > 1 else os.environ.get("HOME", "")
+        new_dir = target if os.path.isabs(target) else os.path.join(cwd or ".", target)
+        return 0, os.path.normpath(new_dir)
+
+    try:
+        result = subprocess.run(tokens, shell=False, check=False, cwd=cwd)
+        return result.returncode, cwd
+    except (OSError, subprocess.SubprocessError) as exc:
+        console.print(f"[error]Command execution failed: {exc}[/error]")
+        return 1, cwd
+
+
+def _execute_command(cmd: str) -> int:
+    """Execute a tool command safely with allowlist validation.
+
+    ``&&``-chained install/run commands are split and each sub-command is
+    executed individually via :func:`_run_single_command` with
+    ``shell=False``.  Working-directory context is preserved across ``cd``
+    sub-commands.  Execution halts on the first non-zero return code.
+
+    Returns the final process return-code (0 = success).
+    """
+    if not cmd or not cmd.strip():
+        return 0
+
+    cwd: str | None = None
+    for sub_cmd in cmd.split("&&"):
+        rc, cwd = _run_single_command(sub_cmd, cwd)
+        if rc != 0:
+            return rc
+    return 0
+
+
 def clear_screen():
-    os.system("cls" if system() == "Windows" else "clear")
+    subprocess.run(["cls"] if system() == "Windows" else ["clear"], check=False)
 
 
 def validate_input(ip, val_range: list) -> int | None:
@@ -212,7 +302,7 @@ class HackingTool:
         if isinstance(self.INSTALL_COMMANDS, (list, tuple)):
             for cmd in self.INSTALL_COMMANDS:
                 console.print(f"[warning]→ {cmd}[/warning]")
-                os.system(cmd)
+                _execute_command(cmd)
         self.after_install()
 
     def after_install(self):
@@ -226,7 +316,7 @@ class HackingTool:
             if isinstance(self.UNINSTALL_COMMANDS, (list, tuple)):
                 for cmd in self.UNINSTALL_COMMANDS:
                     console.print(f"[error]→ {cmd}[/error]")
-                    os.system(cmd)
+                    _execute_command(cmd)
         self.after_uninstall()
 
     def after_uninstall(self): pass
@@ -247,23 +337,24 @@ class HackingTool:
                     dirname = repo_urls[0].rstrip("/").rsplit("/", 1)[-1].replace(".git", "")
                     if os.path.isdir(dirname):
                         console.print(f"[cyan]→ git -C {dirname} pull[/cyan]")
-                        os.system(f"git -C {dirname} pull")
+                        # Pass args as a list to avoid shell injection from dirname
+                        subprocess.run(["git", "-C", dirname, "pull"], shell=False, check=False)
                         updated = True
             elif "pip install" in ic:
                 # Re-run pip install (--upgrade)
                 upgrade_cmd = ic.replace("pip install", "pip install --upgrade")
                 console.print(f"[cyan]→ {upgrade_cmd}[/cyan]")
-                os.system(upgrade_cmd)
+                _execute_command(upgrade_cmd)
                 updated = True
             elif "go install" in ic:
                 # Re-run go install (fetches latest)
                 console.print(f"[cyan]→ {ic}[/cyan]")
-                os.system(ic)
+                _execute_command(ic)
                 updated = True
             elif "gem install" in ic:
                 upgrade_cmd = ic.replace("gem install", "gem update")
                 console.print(f"[cyan]→ {upgrade_cmd}[/cyan]")
-                os.system(upgrade_cmd)
+                _execute_command(upgrade_cmd)
                 updated = True
 
         if updated:
@@ -313,7 +404,10 @@ class HackingTool:
         if tool_dir:
             console.print(f"[success]Opening folder: {tool_dir}[/success]")
             console.print("[dim]Type 'exit' to return to hackingtool.[/dim]")
-            os.system(f'cd "{tool_dir}" && $SHELL')
+            # Use cwd= to set the working directory instead of building a shell
+            # string with the path — prevents injection via specially crafted dir names.
+            shell = os.environ.get("SHELL", "/bin/sh")
+            subprocess.run([shell], cwd=tool_dir, shell=False, check=False)
         else:
             console.print("[warning]Tool directory not found.[/warning]")
             if self.PROJECT_URL:
@@ -327,7 +421,7 @@ class HackingTool:
         if isinstance(self.RUN_COMMANDS, (list, tuple)):
             for cmd in self.RUN_COMMANDS:
                 console.print(f"[cyan]⚙ Running:[/cyan] [bold]{cmd}[/bold]")
-                os.system(cmd)
+                _execute_command(cmd)
         self.after_run()
 
     def after_run(self): pass
