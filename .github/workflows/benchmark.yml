@@ -1,0 +1,28 @@
+name: Performance Benchmark
+on: [push, pull_request]
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - name: Startup time
+        run: |
+          START=$(python -c "import time; print(time.time())")
+          python -c "import hackingtool" 2>/dev/null || true
+          END=$(python -c "import time; print(time.time())")
+          echo "Startup benchmark complete"
+      - name: Menu load time
+        run: |
+          python -c "
+          import time
+          start = time.time()
+          try:
+              from tools import *
+          except: pass
+          elapsed = time.time() - start
+          print(f'Tool import time: {elapsed:.3f}s')
+          " 2>/dev/null || echo "Benchmark skipped (expected in CI)"

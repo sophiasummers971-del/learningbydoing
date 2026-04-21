@@ -183,3 +183,10 @@ pyvenv.cfg
 pip-selfcheck.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,venv
+
+# Bonanza Labs
+*.egg-info/
+dist/
+build/
+sbom.spdx.json
+.env
