@@ -225,7 +225,7 @@ class HackingTool:
         if self.before_uninstall():
             if isinstance(self.UNINSTALL_COMMANDS, (list, tuple)):
                 for cmd in self.UNINSTALL_COMMANDS:
-                    console.print(f"[error]→ {cmd}[/error]")
+                    console.print(f"[warning]→ {cmd}[/warning]")
                     os.system(cmd)
         self.after_uninstall()
 
