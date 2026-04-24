@@ -225,15 +225,17 @@ def create_user_directories():
 # ── Entry point ────────────────────────────────────────────────────────────────
 
 def main():
-    check_root()
     console.clear()
+
+    check_os_compatibility()
+    check_root()
+
 
     console.print(Panel(
         Text(f"HackingTool Installer  {VERSION_DISPLAY}", style="bold magenta"),
         box=box.DOUBLE, border_style="bright_magenta",
     ))
 
-    check_os_compatibility()
 
     if not check_internet():
         sys.exit(1)
