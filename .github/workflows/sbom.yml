@@ -1,0 +1,27 @@
+name: SBOM
+
+on:
+  push:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  generate-sbom:
+    name: Generate SPDX SBOM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install CycloneDX SBOM generator
+        run: pip install cyclonedx-bom
+
+      - name: Generate SBOM
+        run: cyclonedx-py requirements -o sbom.spdx.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.spdx.json
+          retention-days: 30
